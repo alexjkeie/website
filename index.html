@@ -4,25 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>lpsec | Rețea secretă</title>
-    <meta name="description" content="lpsec — rețeaua școlii secrete. Acces doar cu codul proprietarului." />
+    <meta name="description" content="lpsec — rețeaua secretă a școlii. Acces controlat, aprobare manuală și comunitate restricționată." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="bg-bubbles" aria-hidden="true">
-      <span class="bubble bubble-1"></span>
-      <span class="bubble bubble-2"></span>
-      <span class="bubble bubble-3"></span>
-      <span class="bubble bubble-4"></span>
-      <span class="bubble bubble-5"></span>
-      <span class="bubble bubble-6"></span>
-    </div>
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow glow-one" aria-hidden="true"></div>
+    <div class="bg-glow glow-two" aria-hidden="true"></div>
 
     <header class="site-header">
       <div class="container nav">
-          <div class="brand">
+        <div class="brand" aria-label="lpsec brand">
           <span class="brand-mark">L</span>
           <span>lpsec</span>
         </div>
@@ -36,103 +31,119 @@
         <nav class="nav-links" aria-label="Main navigation">
           <a href="index.html" class="active">Acasă</a>
           <a href="request.html">Solicitare</a>
-          <a href="admin.html">Panou Admin</a>
         </nav>
+
         <a class="button button-small" href="request.html">Solicită acces</a>
       </div>
     </header>
 
-    <main id="home">
+    <main>
       <section class="hero">
         <div class="container hero-grid">
           <div class="hero-copy">
-            <p class="eyebrow">școală secretă</p>
+            <p class="eyebrow">rețea internă clasificată</p>
             <h1>lpsec</h1>
-            <p class="subtitle">rețeaua școlii pentru proiecte și misiuni secrete.</p>
+            <p class="subtitle">ceea ce se întâmplă în interiorul școlii rămâne în interiorul școlii.</p>
             <p class="lead">
-              Accesul este strict controlat. Primești un cod doar de la proprietar. Trimite o solicitare și așteaptă
-              aprobarea administratorului.
+              O platformă secretă pentru membri autorizați, cu acces Controlat, comunicare restrictivă și flux de verificare manuală.
+              Nu există conturi deschise. Există doar invitații, aprobări și trust intern.
             </p>
+
             <div class="hero-actions">
               <a class="button" href="request.html">Solicită acces</a>
-              <a class="button button-secondary" href="admin.html">Panou Admin</a>
             </div>
-            <div class="hero-meta" aria-label="lpsec highlights">
-              <span>Acces pe bază de cod</span>
-              <span>Confidențialitate</span>
-              <span>Administrare manuală</span>
+
+            <div class="hero-meta">
+              <span>Acces verificat</span>
+              <span>Flux secret</span>
+              <span>Admin manual</span>
             </div>
           </div>
 
-          <div class="hero-panel" aria-label="lpsec preview">
+          <div class="hero-panel glass-panel" aria-label="lpsec preview">
             <div class="panel-topbar">
               <span class="dot red"></span>
               <span class="dot yellow"></span>
               <span class="dot green"></span>
-              <span class="panel-title">/lpsec/portal</span>
+              <span class="panel-title">/lpsec/secure-access</span>
             </div>
+
             <div class="panel-body">
               <div class="status-row">
-                <span class="status-label">stare</span>
+                <span class="status-label">status</span>
                 <span class="status-pill online">online</span>
               </div>
-              <pre>
-&gt; init școală: activ
-&gt; acces: controlat
-&gt; cereri: așteaptă aprobare
-&gt; securitate: activată
-&gt; administrare: manuală
-              </pre>
+
+              <pre>&gt; network_status: encrypted
+&gt; access: owner_only
+&gt; approval: manual
+&gt; members: trusted_only
+&gt; alerts: secure_channel</pre>
             </div>
+
             <div class="mini-stats">
               <div>
-                <strong>—</strong>
-                <span>Membru</span>
+                <strong>00</strong>
+                <span>Public</span>
               </div>
               <div>
-                <strong>—</strong>
-                <span>Cod</span>
+                <strong>01</strong>
+                <span>Owner</span>
               </div>
               <div>
-                <strong>—</strong>
-                <span>Acces</span>
+                <strong>∞</strong>
+                <span>Trust</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="trust">
-        <div class="container trust-strip">
-          <div><strong>Confidențial</strong><span>Acces doar cu aprobare</span></div>
-          <div><strong>Manual</strong><span>Administrator controlează</span></div>
-          <div><strong>Sigur</strong><span>Date stocate local</span></div>
-          <div><strong>Simplu</strong><span>Interfață curată</span></div>
+      <section class="trust container">
+        <div class="trust-strip glass-panel">
+          <div>
+            <strong>Clasa secretă</strong>
+            <span>rețea restrictivă</span>
+          </div>
+          <div>
+            <strong>Manual</strong>
+            <span>aprobarea rămâne umană</span>
+          </div>
+          <div>
+            <strong>Confidențial</strong>
+            <span>date în interiorul rețelei</span>
+          </div>
+          <div>
+            <strong>Fără zgomot</strong>
+            <span>design liniștit și premium</span>
+          </div>
         </div>
       </section>
 
       <section class="section stats" id="features">
         <div class="container">
-          <div class="stats-header">
-            <p class="eyebrow">ce oferim</p>
-            <h2>Caracteristici ale rețelei lpsec</h2>
+          <div class="section-heading">
+            <p class="eyebrow">network core</p>
+            <h2>Un sistem făcut pentru acces, control și discreție.</h2>
           </div>
 
           <div class="stats-grid">
-            <article class="stat-card glass-card">
-              <span class="stat-tag">acces</span>
-              <h3>Acces pe bază de aprobare</h3>
-              <p>Fără conturi publice — doar solicitări stocate local și aprobate manual.</p>
+            <article class="stat-card glass-panel">
+              <span class="stat-tag">access</span>
+              <h3>Invitație și verificare</h3>
+              <p>Solicitările intră într-un flux controlat și nu se publică niciodată în spațiul deschis.</p>
             </article>
-            <article class="stat-card glass-card">
-              <span class="stat-tag">securitate</span>
-              <h3>Administrator criptat</h3>
-              <p>Credențialele administrativ sunt stocate hashed cu salt pe server.</p>
+
+            <article class="stat-card glass-panel">
+              <span class="stat-tag">layers</span>
+              <h3>Rază internă de trust</h3>
+              <p>Fiecare membru este validat manual și legat de fluxul intern al rețelei.</p>
             </article>
-            <article class="stat-card glass-card">
-              <span class="stat-tag">control</span>
-              <h3>Flux de aprobare</h3>
-              <p>Toate cererile sunt în stare "pending" până la confirmarea manuală.</p>
+
+            <article class="stat-card glass-panel">
+              <span class="stat-tag">security</span>
+              <h3>Admin criptat</h3>
+              <p>Credentialele de administrator sunt păstrate cu salt și hash, fără expunere directă.</p>
             </article>
           </div>
         </div>
@@ -141,75 +152,80 @@
       <section class="section features">
         <div class="container">
           <div class="section-heading">
-            <p class="eyebrow">de ce lpsec</p>
-            <h2>O rețea discretă pentru colaborare secretă.</h2>
+            <p class="eyebrow">why lpsec</p>
+            <h2>O comunitate secretă, dar extrem de profesionistă.</h2>
           </div>
 
           <div class="feature-grid">
-            <article class="feature-card glass-card">
+            <article class="feature-card glass-panel">
               <div class="feature-icon">01</div>
-              <h3>Confidențialitate</h3>
-              <p>Informațiile sensibile rămân interne rețelei și nu se publică.</p>
+              <h3>Flux intern</h3>
+              <p>Secretele rămân în rețeaua internă; nimic nu aparține spațiului public.</p>
             </article>
-            <article class="feature-card glass-card">
+
+            <article class="feature-card glass-panel">
               <div class="feature-icon">02</div>
-              <h3>Control manual</h3>
-              <p>Administratorul verifică fiecare solicitare înainte de aprobare.</p>
+              <h3>Decizie umană</h3>
+              <p>Fiecare membru este validat de administrator înainte de a primi acces real.</p>
             </article>
-            <article class="feature-card glass-card">
+
+            <article class="feature-card glass-panel">
               <div class="feature-icon">03</div>
-              <h3>Fișier local</h3>
-              <p>Datele utilizatorilor sunt salvate în fișiere JSON pe server.</p>
+              <h3>Control total</h3>
+              <p>Adminul poate revoca accesul, gestiona cereri și menține ordinea rețelei.</p>
             </article>
-            <article class="feature-card glass-card">
+
+            <article class="feature-card glass-panel">
               <div class="feature-icon">04</div>
-              <h3>Interfață modernă</h3>
-              <p>Design întunecat, clar și ușor de navigat pentru o experiență discretă.</p>
+              <h3>Design premium</h3>
+              <p>O estetică cyber-dark, cu contrast, glow și lumină discretă.</p>
             </article>
-            <article class="feature-card glass-card">
+
+            <article class="feature-card glass-panel">
               <div class="feature-icon">05</div>
-              <h3>Flux simplu</h3>
-              <p>Solicită, așteaptă aprobare, intră — proces transparent și sigur.</p>
+              <h3>Mesaje interne</h3>
+              <p>Rețeaua permite schimburi de informații, note și anunțuri private.</p>
             </article>
-            <article class="feature-card glass-card">
+
+            <article class="feature-card glass-panel">
               <div class="feature-icon">06</div>
-              <h3>Acces controlat</h3>
-              <p>Fără conturi publice; doar cereri aprobate manual.</p>
+              <h3>Ready for members</h3>
+              <p>După aprobare, membrul intră într-o zonă privilegiată cu acces permanent.</p>
             </article>
           </div>
         </div>
       </section>
 
-      <!-- Downloads removed: access is controlled via solicitare -->
-
       <section class="section showcase" id="showcase">
         <div class="container showcase-grid">
           <div class="showcase-copy">
-            <p class="eyebrow">execution stack</p>
-            <h2>Everything a modern executor needs.</h2>
+            <p class="eyebrow">mission structure</p>
+            <h2>Un ecosistem secret, gata pentru colaborare discretă.</h2>
             <ul class="check-list">
-              <li>Premium dark interface with glass layering</li>
-              <li>Quick launcher and clean script queue</li>
-              <li>Improved stability for longer active sessions</li>
-              <li>Responsive design for mobile and desktop browsers</li>
+              <li>Comunicare internă și mesaje controlate</li>
+              <li>Acces restricționat bazat pe cod și validare</li>
+              <li>Panou administrativ pentru aprobare și revocare</li>
+              <li>Interfață responsive pentru orice dispozitiv</li>
             </ul>
           </div>
 
           <div class="stack-cards">
-            <div class="stack-card glass-card">
+            <div class="stack-card glass-panel">
               <span>01</span>
-              <h3>Launcher</h3>
-              <p>Quick startup and cleaner session control for faster, smarter runs.</p>
+              <h3>Secure shell</h3>
+              <p>Portal-ul secret are un stil de operare discret și curat, fără zgomot inutil.</p>
             </div>
-            <div class="stack-card glass-card">
+
+            <div class="stack-card glass-panel">
               <span>02</span>
-              <h3>Runtime</h3>
-              <p>Optimized execution engine tuned for smoother script handling and less friction.</p>
+              <h3>Approval loop</h3>
+              <p>Solicitarea trece prin verificare manuală și intră apoi într-un flux de acces activ.</p>
             </div>
-            <div class="stack-card glass-card">
+
+            <div class="stack-card glass-panel">
               <span>03</span>
-              <h3>Payloads</h3>
-              <p>Premium script support with better organization and lower overhead.</p>
+              <h3>Member access</h3>
+              <p>După aprobare, membrul poate folosi rețeaua internă, note și mesaje restricționate.</p>
             </div>
           </div>
         </div>
@@ -220,7 +236,7 @@
       <div class="container footer-box">
         <div>
           <p class="eyebrow">lpsec</p>
-          <h2>Rețeaua școlii secrete — acces controlat</h2>
+          <h2>Acces guvernat de încredere și control.</h2>
         </div>
         <a class="button" href="request.html">Solicită acces</a>
       </div>

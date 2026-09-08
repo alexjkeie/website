@@ -4,32 +4,55 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Panou Admin — lpsec</title>
+    <meta name="description" content="Panoul administratorului LPSEC." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="page-shell">
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow glow-one" aria-hidden="true"></div>
+    <div class="bg-glow glow-two" aria-hidden="true"></div>
+
     <header class="site-header">
       <div class="container nav">
         <div class="brand"><span class="brand-mark">L</span><span>lpsec</span></div>
         <nav class="nav-links" aria-label="Main navigation">
           <a href="index.html">Acasă</a>
-          <a href="request.html">Solicitare acces</a>
+          <a href="request.html">Solicitare</a>
         </nav>
       </div>
     </header>
 
-    <main class="container">
-      <section>
-        <h1>Conectare administrator</h1>
-        <form id="adminLoginForm">
-          <label>Nume utilizator<input name="user" value="sage" /></label>
-          <label>Parolă<input name="pass" type="password" /></label>
-          <button type="submit">Conectează-te</button>
+    <main class="container page-centered stack">
+      <section class="form-shell glass-panel">
+        <div class="form-header">
+          <p class="eyebrow">admin auth</p>
+          <h1>Conectare administrator</h1>
+        </div>
+
+        <form id="adminLoginForm" class="access-form">
+          <label>
+            Nume utilizator
+            <input name="user" placeholder="Numele administratorului" />
+          </label>
+
+          <label>
+            Parolă
+            <input name="pass" type="password" placeholder="••••••••" />
+          </label>
+
+          <button class="button" type="submit">Conectează-te</button>
         </form>
       </section>
 
-      <section>
-        <h2>Solicitări în așteptare</h2>
-        <div id="requestsList">Autentificați pentru a vedea cererile.</div>
+      <section class="form-shell glass-panel">
+        <div class="form-header compact">
+          <p class="eyebrow">pending requests</p>
+          <h2>Cereri în așteptare</h2>
+        </div>
+        <div id="requestsList" class="request-list">Autentificați pentru a vedea cererile.</div>
       </section>
     </main>
 

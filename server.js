@@ -7,6 +7,23 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+
+app.use((req, res, next) => {
+  const ip = getClientIp(req);
+  if (isIpBlacklisted(ip)) {
+    if (req.accepts('html')) {
+      return res.status(403).sendFile(path.join(__dirname, 'blocked.html'));
+    }
+    return res.status(403).json({
+      ok: false,
+      error: 'blacklisted',
+      message: 'IP-ul tău a fost blocat de administrator. Contactează proprietarul rețelei.',
+      ip
+    });
+  }
+  next();
+});
+
 app.use(express.static(path.join(__dirname)));
 
 app.get('/api/status', (req, res) => {
@@ -55,6 +72,8 @@ const REQUESTS_FILE = path.join(DATA_DIR, 'requests.json');
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
 const POSTS_FILE = path.join(DATA_DIR, 'posts.json');
 const NOTES_FILE = path.join(DATA_DIR, 'notes.json');
+const BLACKLIST_FILE = path.join(DATA_DIR, 'blacklist.json');
+const ALERTS_FILE = path.join(DATA_DIR, 'alerts.json');
 
 function ensureDataFiles() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
@@ -63,16 +82,20 @@ function ensureDataFiles() {
   if (!fs.existsSync(SESSIONS_FILE)) fs.writeFileSync(SESSIONS_FILE, JSON.stringify([]));
   if (!fs.existsSync(POSTS_FILE)) fs.writeFileSync(POSTS_FILE, JSON.stringify([]));
   if (!fs.existsSync(NOTES_FILE)) fs.writeFileSync(NOTES_FILE, JSON.stringify([]));
+  if (!fs.existsSync(BLACKLIST_FILE)) fs.writeFileSync(BLACKLIST_FILE, JSON.stringify([]));
+  if (!fs.existsSync(ALERTS_FILE)) fs.writeFileSync(ALERTS_FILE, JSON.stringify([]));
 
   if (!fs.existsSync(ADMIN_FILE)) {
-    // create default admin from env or fallback to provided default
-    const adminUser = process.env.ADMIN_USER || 'sage';
-    const adminPass = process.env.ADMIN_PASS || 'audia81989';
+    const adminUser = process.env.ADMIN_USER || '';
+    const adminPass = process.env.ADMIN_PASS || '';
+    if (!adminUser || !adminPass) {
+      console.warn('ADMIN_USER and ADMIN_PASS are not set. Create them in your environment before deployment.');
+    }
     const salt = crypto.randomBytes(16).toString('hex');
-    const hash = crypto.pbkdf2Sync(adminPass, salt, 100000, 32, 'sha256').toString('hex');
+    const hash = adminUser && adminPass ? crypto.pbkdf2Sync(adminPass, salt, 100000, 32, 'sha256').toString('hex') : '';
     const admin = { user: adminUser, salt, hash };
     fs.writeFileSync(ADMIN_FILE, JSON.stringify(admin, null, 2));
-    console.log('Created default admin user');
+    console.log('Created admin config template; set ADMIN_USER and ADMIN_PASS in your host env.');
   }
 }
 
@@ -88,17 +111,40 @@ function writeJSON(file, obj) {
 ensureDataFiles();
 
 // Admin login
+function getClientIp(req) {
+  return (
+    req.headers['x-forwarded-for'] ||
+    req.headers['x-real-ip'] ||
+    req.socket?.remoteAddress ||
+    'unknown'
+  );
+}
+
+function isIpBlacklisted(ip) {
+  const blacklist = readJSON(BLACKLIST_FILE) || [];
+  return blacklist.some((entry) => entry.ip === ip || entry.ip === String(ip));
+}
+
+function addIpToBlacklist(ip, reason = 'manual') {
+  const blacklist = readJSON(BLACKLIST_FILE) || [];
+  if (!ip || blacklist.some((entry) => entry.ip === ip)) return blacklist;
+  blacklist.push({ ip, reason, createdAt: Date.now() });
+  writeJSON(BLACKLIST_FILE, blacklist);
+  return blacklist;
+}
+
 app.post('/api/admin/login', (req, res) => {
   const { user, pass } = req.body || {};
   const admin = readJSON(ADMIN_FILE);
   if (!admin) return res.json({ ok: false, error: 'no-admin' });
+  if (!admin.user || !admin.hash) return res.json({ ok: false, error: 'admin_not_configured' });
   if (user !== admin.user) return res.json({ ok: false, error: 'invalid' });
   const testHash = crypto.pbkdf2Sync(pass || '', admin.salt, 100000, 32, 'sha256').toString('hex');
   if (testHash !== admin.hash) return res.json({ ok: false, error: 'invalid' });
 
   const token = crypto.randomBytes(24).toString('hex');
   const sessions = readJSON(SESSIONS_FILE) || [];
-  sessions.push({ token, user: admin.user, createdAt: Date.now() });
+  sessions.push({ token, user: admin.user, createdAt: Date.now(), ip: getClientIp(req) });
   writeJSON(SESSIONS_FILE, sessions);
   return res.json({ ok: true, token });
 });
@@ -147,6 +193,27 @@ app.get('/api/entry-status', (req, res) => {
 app.get('/api/admin/requests', requireAdminToken, (req, res) => {
   const requests = readJSON(REQUESTS_FILE) || [];
   return res.json({ ok: true, requests });
+});
+
+app.get('/api/admin/blacklist', requireAdminToken, (req, res) => {
+  const blacklist = readJSON(BLACKLIST_FILE) || [];
+  return res.json({ ok: true, blacklist });
+});
+
+app.post('/api/admin/blacklist/add', requireAdminToken, (req, res) => {
+  const { ip, reason } = req.body || {};
+  if (!ip) return res.json({ ok: false, error: 'missing_ip' });
+  const updated = addIpToBlacklist(ip, reason || 'manual');
+  return res.json({ ok: true, blacklist: updated });
+});
+
+app.post('/api/admin/blacklist/remove', requireAdminToken, (req, res) => {
+  const { ip } = req.body || {};
+  if (!ip) return res.json({ ok: false, error: 'missing_ip' });
+  const blacklist = readJSON(BLACKLIST_FILE) || [];
+  const filtered = blacklist.filter((entry) => entry.ip !== ip);
+  writeJSON(BLACKLIST_FILE, filtered);
+  return res.json({ ok: true, blacklist: filtered });
 });
 
 app.post('/api/admin/approve', requireAdminToken, (req, res) => {
@@ -231,6 +298,39 @@ app.get('/api/member/posts', (req, res) => {
   return res.json({ ok: true, posts });
 });
 
+app.get('/api/member/dashboard', (req, res) => {
+  const { id, token } = req.query || {};
+  const user = validateAccessToken(id, token);
+  if (!user) return res.json({ ok: false, error: 'invalid' });
+  const posts = readJSON(POSTS_FILE) || [];
+  const notes = readJSON(NOTES_FILE) || [];
+  const members = (readJSON(REQUESTS_FILE) || []).filter((r) => r.status === 'approved').map((r) => ({ id: r.id, name: r.name }));
+  return res.json({
+    ok: true,
+    member: { id: user.id, name: user.name },
+    stats: {
+      totalMembers: members.length,
+      totalPosts: posts.length,
+      totalNotes: notes.filter((n) => n.ownerId === user.id).length,
+      accessUntil: user.accessExpires || null
+    },
+    members,
+    alerts: (readJSON(ALERTS_FILE) || []).slice(0, 5)
+  });
+});
+
+app.post('/api/member/alert', (req, res) => {
+  const { id, token, text } = req.body || {};
+  if (!text) return res.json({ ok: false, error: 'missing_text' });
+  const user = validateAccessToken(id, token);
+  if (!user) return res.json({ ok: false, error: 'invalid' });
+  const alerts = readJSON(ALERTS_FILE) || [];
+  const alert = { id: crypto.randomBytes(6).toString('hex'), author: user.name, text, createdAt: Date.now() };
+  alerts.unshift(alert);
+  writeJSON(ALERTS_FILE, alerts);
+  return res.json({ ok: true, alert });
+});
+
 app.post('/api/member/note', (req, res) => {
   const { id, token, note } = req.body || {};
   if (!note) return res.json({ ok: false, error: 'missing_note' });
@@ -301,6 +401,21 @@ app.post('/api/admin/change-pass', requireAdminToken, (req, res) => {
 app.get('/api/admin/posts', requireAdminToken, (req, res) => {
   const posts = readJSON(POSTS_FILE) || [];
   return res.json({ ok: true, posts });
+});
+
+app.get('/api/admin/alerts', requireAdminToken, (req, res) => {
+  const alerts = readJSON(ALERTS_FILE) || [];
+  return res.json({ ok: true, alerts });
+});
+
+app.post('/api/admin/alert', requireAdminToken, (req, res) => {
+  const { text } = req.body || {};
+  if (!text) return res.json({ ok: false, error: 'missing_text' });
+  const alerts = readJSON(ALERTS_FILE) || [];
+  const alert = { id: crypto.randomBytes(6).toString('hex'), author: 'Admin', text, createdAt: Date.now() };
+  alerts.unshift(alert);
+  writeJSON(ALERTS_FILE, alerts);
+  return res.json({ ok: true, alert });
 });
 
 // Admin: delete a post

@@ -41,6 +41,7 @@
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:0.6rem">
           <button id="exportBtn" class="button button-secondary">Exportă cereri (JSON)</button>
           <button id="sessionsBtn" class="button button-secondary">Vezi sesiuni</button>
+          <button id="blacklistBtn" class="button button-secondary">Blacklist IP</button>
           <button id="changePassBtn" class="button">Schimbă parola</button>
         </div>
       </section>
@@ -112,8 +113,54 @@
           const r = await fetch('/api/admin/sessions', { headers: { 'x-admin-token': token }});
           const j = await r.json();
           if (!j.ok) return alert('Eroare la preluare sesiuni');
-          const body = '<h3>Sesiuni active</h3><div style="max-height:260px;overflow:auto;">' + (j.sessions.length ? j.sessions.map(s=>`<div style="padding:6px;border-bottom:1px solid var(--line)"><strong>${s.user}</strong><div style="font-size:0.9rem;color:var(--muted)">${new Date(s.createdAt).toLocaleString()}</div><div style="font-size:0.8rem;color:var(--muted)">token: ${s.token}</div></div>`).join('') : '<div>Nu sunt sesiuni.</div>') + '</div>';
+          const body = '<h3>Sesiuni active</h3><div style="max-height:260px;overflow:auto;">' + (j.sessions.length ? j.sessions.map(s=>`<div style="padding:6px;border-bottom:1px solid var(--line)"><strong>${s.user}</strong><div style="font-size:0.9rem;color:var(--muted)">${new Date(s.createdAt).toLocaleString()}</div><div style="font-size:0.8rem;color:var(--muted)">IP: ${s.ip || 'necunos'} / token: ${s.token}</div></div>`).join('') : '<div>Nu sunt sesiuni.</div>') + '</div>';
           openModal(body);
+        });
+
+        document.getElementById('blacklistBtn').addEventListener('click', async ()=>{
+          const res = await fetch('/api/admin/blacklist', { headers: { 'x-admin-token': token }});
+          const j = await res.json();
+          if (!j.ok) return alert('Eroare la blacklist');
+          const body = `
+            <h3>Blacklist IP</h3>
+            <div style="display:grid;gap:0.6rem;">
+              <input id="blacklistIp" placeholder="IP-ul de blocat" />
+              <input id="blacklistReason" placeholder="Motiv" />
+              <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end">
+                <button id="doBlacklist" class="button">Blochează</button>
+              </div>
+            </div>
+            <div style="margin-top:1rem;max-height:220px;overflow:auto;display:grid;gap:0.5rem;">
+              ${(j.blacklist || []).length ? (j.blacklist || []).map(item => `
+                <div style="padding:0.5rem;border:1px solid var(--line);border-radius:10px;display:flex;justify-content:space-between;gap:1rem;align-items:center;">
+                  <div>
+                    <strong>${item.ip}</strong>
+                    <div style="font-size:0.8rem;color:var(--muted)">${item.reason || 'manual'}</div>
+                  </div>
+                  <button class="button button-secondary remove-ip" data-ip="${item.ip}">Șterge</button>
+                </div>
+              `).join('') : '<div>Nu există IP-uri blocate.</div>'}
+            </div>
+          `;
+          openModal(body);
+          document.getElementById('doBlacklist').addEventListener('click', async ()=>{
+            const ip = document.getElementById('blacklistIp').value.trim();
+            const reason = document.getElementById('blacklistReason').value.trim();
+            if (!ip) return alert('Introduceți un IP');
+            const r = await fetch('/api/admin/blacklist/add', { method:'POST', headers:{ 'Content-Type':'application/json','x-admin-token': token }, body: JSON.stringify({ ip, reason }) });
+            const data = await r.json();
+            if (data.ok) { alert('IP blocat'); closeModal(); }
+            else alert('Eroare: ' + (data.error || 'unknown'));
+          });
+          document.querySelectorAll('.remove-ip').forEach(btn => {
+            btn.addEventListener('click', async ()=>{
+              const ip = btn.getAttribute('data-ip');
+              const r = await fetch('/api/admin/blacklist/remove', { method:'POST', headers:{ 'Content-Type':'application/json','x-admin-token': token }, body: JSON.stringify({ ip }) });
+              const data = await r.json();
+              if (data.ok) { alert('IP eliminat din blacklist'); closeModal(); }
+              else alert('Eroare: ' + (data.error || 'unknown'));
+            });
+          });
         });
 
         // Announce (broadcast)

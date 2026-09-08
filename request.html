@@ -4,9 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Solicită acces — lpsec</title>
+    <meta name="description" content="Solicită acces la rețeaua secretă lpsec." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="page-shell">
+    <div class="bg-grid" aria-hidden="true"></div>
+    <div class="bg-glow glow-one" aria-hidden="true"></div>
+    <div class="bg-glow glow-two" aria-hidden="true"></div>
+
     <header class="site-header">
       <div class="container nav">
         <div class="brand"><span class="brand-mark">L</span><span>lpsec</span></div>
@@ -16,15 +24,28 @@
       </div>
     </header>
 
-    <main class="container">
-      <section>
-        <h1>Solicită acces</h1>
-        <form id="requestForm">
-          <label>Nume<input name="name" required /></label>
-          <label>Cod (dacă ai)<input name="code" /></label>
-          <button type="submit">Trimite cererea</button>
+    <main class="container page-centered">
+      <section class="form-shell glass-panel">
+        <div class="form-header">
+          <p class="eyebrow">request access</p>
+          <h1>Solicită intrarea în rețea</h1>
+        </div>
+
+        <form id="requestForm" class="access-form">
+          <label>
+            Nume complet
+            <input name="name" placeholder="Numele tău" required />
+          </label>
+
+          <label>
+            Cod de acces
+            <input name="code" placeholder="Dacă ai primit un cod" />
+          </label>
+
+          <button class="button" type="submit">Trimite cererea</button>
         </form>
-        <div id="requestStatus"></div>
+
+        <div id="requestStatus" class="form-status" aria-live="polite"></div>
       </section>
     </main>
 
