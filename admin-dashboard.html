@@ -46,8 +46,8 @@
       </section>
     </main>
 
-    <div id="modal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;">
-      <div class="glass-panel" style="padding:1rem;max-width:520px;width:90%;">
+    <div id="modal">
+      <div class="glass-panel" style="padding:1rem;">
         <div id="modalBody"></div>
         <div style="margin-top:1rem;text-align:right;"><button id="closeModal" class="button button-secondary">Închide</button></div>
       </div>
@@ -98,13 +98,22 @@
           const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='requests.json'; document.body.appendChild(a); a.click(); a.remove();
         });
 
+        // modal helpers
+        const modal = document.getElementById('modal');
+        const modalBodyEl = document.getElementById('modalBody');
+        const closeModalBtn = document.getElementById('closeModal');
+        function openModal(content){ modalBodyEl.innerHTML = content; modal.classList.add('open'); }
+        function closeModal(){ modal.classList.remove('open'); }
+        closeModalBtn.addEventListener('click', closeModal);
+        // close when clicking backdrop
+        modal.addEventListener('click', (e)=>{ if (e.target === modal) closeModal(); });
+
         document.getElementById('sessionsBtn').addEventListener('click', async ()=>{
           const r = await fetch('/api/admin/sessions', { headers: { 'x-admin-token': token }});
           const j = await r.json();
           if (!j.ok) return alert('Eroare la preluare sesiuni');
           const body = '<h3>Sesiuni active</h3><div style="max-height:260px;overflow:auto;">' + (j.sessions.length ? j.sessions.map(s=>`<div style="padding:6px;border-bottom:1px solid var(--line)"><strong>${s.user}</strong><div style="font-size:0.9rem;color:var(--muted)">${new Date(s.createdAt).toLocaleString()}</div><div style="font-size:0.8rem;color:var(--muted)">token: ${s.token}</div></div>`).join('') : '<div>Nu sunt sesiuni.</div>') + '</div>';
-          document.getElementById('modalBody').innerHTML = body; document.getElementById('modal').style.display='flex';
-          document.getElementById('closeModal').onclick = ()=>{ document.getElementById('modal').style.display='none'; };
+          openModal(body);
         });
 
         // Announce (broadcast)
@@ -112,13 +121,13 @@
         announceBtn.style.marginLeft='0.6rem';
         announceBtn.addEventListener('click', ()=>{
           const body = `<h3>Trimite anunț</h3><textarea id="announceText" style="width:100%;height:120px"></textarea><div style="text-align:right;margin-top:8px"><button id="doAnnounce" class="button">Trimite</button></div>`;
-          document.getElementById('modalBody').innerHTML = body; document.getElementById('modal').style.display='flex';
-          document.getElementById('closeModal').onclick = ()=>{ document.getElementById('modal').style.display='none'; };
-          document.getElementById('doAnnounce').onclick = async ()=>{
+          openModal(body);
+          // attach handler after content injected
+          document.getElementById('doAnnounce').addEventListener('click', async ()=>{
             const text = document.getElementById('announceText').value;
             const r = await fetch('/api/admin/announce', { method:'POST', headers:{ 'Content-Type':'application/json','x-admin-token': token }, body: JSON.stringify({ text }) });
-            const j = await r.json(); if (j.ok) { alert('Anunț trimis'); document.getElementById('modal').style.display='none'; loadRequests(); } else alert('Eroare: '+j.error);
-          };
+            const j = await r.json(); if (j.ok) { alert('Anunț trimis'); closeModal(); loadRequests(); } else alert('Eroare: '+j.error);
+          });
         });
         document.querySelector('section:nth-of-type(3) div').appendChild(announceBtn);
 
@@ -149,13 +158,12 @@
             <label>Parolă nouă<input id="newp" type="password" /></label>
             <div style="margin-top:8px;text-align:right"><button id="doChange" class="button">Salvează</button></div>
           `;
-          document.getElementById('modalBody').innerHTML = body; document.getElementById('modal').style.display='flex';
-          document.getElementById('closeModal').onclick = ()=>{ document.getElementById('modal').style.display='none'; };
-          document.getElementById('doChange').onclick = async ()=>{
+          openModal(body);
+          document.getElementById('doChange').addEventListener('click', async ()=>{
             const oldP = document.getElementById('oldp').value; const newP = document.getElementById('newp').value;
             const res = await fetch('/api/admin/change-pass',{ method:'POST', headers:{ 'Content-Type':'application/json','x-admin-token': token }, body: JSON.stringify({ oldPass: oldP, newPass: newP }) });
-            const j = await res.json(); if (j.ok) { alert('Parolă schimbată'); document.getElementById('modal').style.display='none'; } else alert('Eroare: '+j.error);
-          };
+            const j = await res.json(); if (j.ok) { alert('Parolă schimbată'); closeModal(); } else alert('Eroare: '+j.error);
+          });
         });
 
         loadRequests();

@@ -1039,3 +1039,24 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+/* Modal backdrop used by admin dashboard */
+#modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  align-items: center;
+  justify-content: center;
+  z-index: 2200;
+  pointer-events: none;
+}
+#modal.open {
+  display: flex;
+  background: rgba(0,0,0,0.45);
+  pointer-events: auto;
+}
+#modal .glass-panel {
+  max-width: 720px;
+  width: 92%;
+  margin: 0 1rem;
+}
