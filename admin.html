@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Panou Admin — lpsec</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <div class="brand"><span class="brand-mark">L</span><span>lpsec</span></div>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="index.html">Acasă</a>
+          <a href="request.html">Solicitare acces</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section>
+        <h1>Conectare administrator</h1>
+        <form id="adminLoginForm">
+          <label>Nume utilizator<input name="user" value="sage" /></label>
+          <label>Parolă<input name="pass" type="password" /></label>
+          <button type="submit">Conectează-te</button>
+        </form>
+      </section>
+
+      <section>
+        <h2>Solicitări în așteptare</h2>
+        <div id="requestsList">Autentificați pentru a vedea cererile.</div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

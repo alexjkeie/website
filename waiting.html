@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Așteptare aprobare — lpsec</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section>
+        <h1>Cererea ta este în așteptare</h1>
+        <p>Așteaptă confirmarea de la administrator. Pagina se va actualiza automat.</p>
+        <div id="waitStatus">Stare: în așteptare...</div>
+      </section>
+    </main>
+    <script>
+      // Poll status based on ?id= query
+      function qs(name) {
+        return new URLSearchParams(location.search).get(name);
+      }
+      const id = qs('id');
+      async function check() {
+        if (!id) return; 
+        try {
+          const res = await fetch('/api/entry-status?id=' + encodeURIComponent(id));
+          const j = await res.json();
+          if (j.ok) {
+                document.getElementById('waitStatus').textContent = 'Stare: ' + j.status;
+                if (j.status === 'approved') {
+                  document.getElementById('waitStatus').textContent = 'Acces aprobat! Redirect…';
+                  // request an access token then redirect to secret page
+                  try {
+                    const t = await fetch('/api/access-token?id=' + encodeURIComponent(id));
+                    const tj = await t.json();
+                    if (tj.ok) {
+                      setTimeout(() => { location.href = 'secret.html?id='+encodeURIComponent(id)+'&token='+encodeURIComponent(tj.token); }, 800);
+                      return;
+                    } else {
+                      document.getElementById('waitStatus').textContent = 'Eroare la generarea tokenului.';
+                    }
+                  } catch(e) { document.getElementById('waitStatus').textContent = 'Eroare rețea.'; }
+                }
+              }
+        } catch (e) {}
+        setTimeout(check, 3000);
+      }
+      check();
+    </script>
+  </body>
+</html>

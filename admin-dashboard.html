@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Panou Admin — lpsec</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <div class="brand"><span class="brand-mark">L</span><span>lpsec</span></div>
+        <nav class="nav-links">
+          <a href="index.html">Acasă</a>
+          <a href="request.html">Solicitare</a>
+        </nav>
+        <div>
+          <button id="logoutBtn" class="button-small">Deconectează</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <h1>Panou Administrator</h1>
+      <div id="adminInfo" class="glass-panel" style="padding:1rem;margin-bottom:1rem;">
+        <strong>Profil:</strong> <span id="adminUser">—</span>
+      </div>
+
+      <section>
+        <h2>Cereri în așteptare</h2>
+        <div id="requestsPanel">Încă se încarcă...</div>
+      </section>
+
+      <section>
+        <h2>Instrumente</h2>
+        <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:0.6rem">
+          <button id="exportBtn" class="button button-secondary">Exportă cereri (JSON)</button>
+          <button id="sessionsBtn" class="button button-secondary">Vezi sesiuni</button>
+          <button id="changePassBtn" class="button">Schimbă parola</button>
+        </div>
+      </section>
+    </main>
+
+    <div id="modal" style="display:none;position:fixed;inset:0;align-items:center;justify-content:center;">
+      <div class="glass-panel" style="padding:1rem;max-width:520px;width:90%;">
+        <div id="modalBody"></div>
+        <div style="margin-top:1rem;text-align:right;"><button id="closeModal" class="button button-secondary">Închide</button></div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+      (function(){
+        const token = localStorage.getItem('lpsec_admin_token');
+        if (!token) { location.href='admin.html'; return; }
+        document.getElementById('logoutBtn').addEventListener('click', ()=>{ localStorage.removeItem('lpsec_admin_token'); location.href='admin.html'; });
+
+        async function loadRequests(){
+          const r = await fetch('/api/admin/requests', { headers: { 'x-admin-token': token }});
+          const j = await r.json();
+          const panel = document.getElementById('requestsPanel');
+          if (!j.ok) { panel.textContent='Eroare la preluare'; return; }
+          panel.innerHTML='';
+          j.requests.forEach(req=>{
+            const el = document.createElement('div');
+            el.className='service-item';
+            el.style.display='flex'; el.style.justifyContent='space-between'; el.style.alignItems='center'; el.style.marginBottom='0.6rem';
+            el.innerHTML = `<div><strong>${req.name}</strong><div style="font-size:0.9rem;color:var(--muted)">Stare: ${req.status} ${req.accessToken? '(token activ)':''}</div></div>`;
+            const actions = document.createElement('div');
+            if (req.status==='pending'){
+              const a = document.createElement('button'); a.textContent='Aprobă'; a.className='button';
+              a.addEventListener('click', async ()=>{ await fetch('/api/admin/approve', { method:'POST', headers:{ 'Content-Type':'application/json','x-admin-token':token }, body: JSON.stringify({ id: req.id }) }); loadRequests(); });
+              const rj = document.createElement('button'); rj.textContent='Respinge'; rj.className='button button-secondary';
+              rj.addEventListener('click', async ()=>{ await fetch('/api/admin/reject',{ method:'POST', headers:{ 'Content-Type':'application/json','x-admin-token':token }, body: JSON.stringify({ id: req.id }) }); loadRequests(); });
+              actions.appendChild(a); actions.appendChild(rj);
+            } else if (req.status==='approved'){
+              const revoke = document.createElement('button'); revoke.textContent='Revocă'; revoke.className='button button-secondary';
+              revoke.addEventListener('click', async ()=>{ await fetch('/api/admin/revoke',{ method:'POST', headers:{ 'Content-Type':'application/json','x-admin-token':token }, body: JSON.stringify({ id: req.id }) }); loadRequests(); });
+              actions.appendChild(revoke);
+              const open = document.createElement('a'); open.className='button'; open.textContent='Deschide rețea'; open.href=`secret.html?id=${req.id}&token=${req.accessToken||''}`; actions.appendChild(open);
+            } else {
+              const info = document.createElement('span'); info.textContent='Nicio acțiune'; actions.appendChild(info);
+            }
+            el.appendChild(actions);
+            panel.appendChild(el);
+          });
+        }
+
+        document.getElementById('exportBtn').addEventListener('click', async ()=>{
+          const r = await fetch('/api/admin/export',{ headers:{ 'x-admin-token': token }}); const j = await r.json();
+          if (!j.ok) return alert('Eroare export');
+          const blob = new Blob([JSON.stringify(j.requests,null,2)],{type:'application/json'});
+          const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='requests.json'; document.body.appendChild(a); a.click(); a.remove();
+        });
+
+        document.getElementById('changePassBtn').addEventListener('click', ()=>{
+          const body = `
+            <h3>Schimbă parola</h3>
+            <label>Parolă veche<input id="oldp" type="password" /></label>
+            <label>Parolă nouă<input id="newp" type="password" /></label>
+            <div style="margin-top:8px;text-align:right"><button id="doChange" class="button">Salvează</button></div>
+          `;
+          document.getElementById('modalBody').innerHTML = body; document.getElementById('modal').style.display='flex';
+          document.getElementById('closeModal').onclick = ()=>{ document.getElementById('modal').style.display='none'; };
+          document.getElementById('doChange').onclick = async ()=>{
+            const oldP = document.getElementById('oldp').value; const newP = document.getElementById('newp').value;
+            const res = await fetch('/api/admin/change-pass',{ method:'POST', headers:{ 'Content-Type':'application/json','x-admin-token': token }, body: JSON.stringify({ oldPass: oldP, newPass: newP }) });
+            const j = await res.json(); if (j.ok) { alert('Parolă schimbată'); document.getElementById('modal').style.display='none'; } else alert('Eroare: '+j.error);
+          };
+        });
+
+        loadRequests();
+      })();
+    </script>
+  </body>
+</html>

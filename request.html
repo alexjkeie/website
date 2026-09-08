@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solicită acces — lpsec</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <div class="brand"><span class="brand-mark">L</span><span>lpsec</span></div>
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="index.html">Acasă</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      <section>
+        <h1>Solicită acces</h1>
+        <form id="requestForm">
+          <label>Nume<input name="name" required /></label>
+          <label>Cod (dacă ai)<input name="code" /></label>
+          <button type="submit">Trimite cererea</button>
+        </form>
+        <div id="requestStatus"></div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
