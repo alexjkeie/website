@@ -53,12 +53,16 @@ const DATA_DIR = path.join(__dirname, 'data');
 const ADMIN_FILE = path.join(DATA_DIR, 'admin.json');
 const REQUESTS_FILE = path.join(DATA_DIR, 'requests.json');
 const SESSIONS_FILE = path.join(DATA_DIR, 'sessions.json');
+const POSTS_FILE = path.join(DATA_DIR, 'posts.json');
+const NOTES_FILE = path.join(DATA_DIR, 'notes.json');
 
 function ensureDataFiles() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR);
 
   if (!fs.existsSync(REQUESTS_FILE)) fs.writeFileSync(REQUESTS_FILE, JSON.stringify([]));
   if (!fs.existsSync(SESSIONS_FILE)) fs.writeFileSync(SESSIONS_FILE, JSON.stringify([]));
+  if (!fs.existsSync(POSTS_FILE)) fs.writeFileSync(POSTS_FILE, JSON.stringify([]));
+  if (!fs.existsSync(NOTES_FILE)) fs.writeFileSync(NOTES_FILE, JSON.stringify([]));
 
   if (!fs.existsSync(ADMIN_FILE)) {
     // create default admin from env or fallback to provided default
@@ -99,6 +103,15 @@ app.post('/api/admin/login', (req, res) => {
   return res.json({ ok: true, token });
 });
 
+app.post('/api/admin/announce', requireAdminToken, (req, res) => {
+  const { text } = req.body || {};
+  if (!text) return res.json({ ok: false, error: 'missing' });
+  const posts = readJSON(POSTS_FILE) || [];
+  const post = { id: crypto.randomBytes(6).toString('hex'), authorId: 'admin', author: 'Administrator', text, createdAt: Date.now(), admin: true };
+  posts.unshift(post);
+  writeJSON(POSTS_FILE, posts);
+  return res.json({ ok: true, post });
+});
 function requireAdminToken(req, res, next) {
   const token = req.headers['x-admin-token'] || req.body.token || req.query.token;
   if (!token) return res.status(403).json({ ok: false, error: 'no-token' });
@@ -176,6 +189,15 @@ app.get('/api/access-token', (req, res) => {
   return res.json({ ok: true, token: item.accessToken, expires: item.accessExpires });
 });
 
+function validateAccessToken(id, token) {
+  if (!id || !token) return null;
+  const requests = readJSON(REQUESTS_FILE) || [];
+  const item = requests.find((r) => r.id === id && r.accessToken === token && r.status === 'approved');
+  if (!item) return null;
+  if (item.accessExpires && Date.now() > item.accessExpires) return null;
+  return item;
+}
+
 // Validate access token for secret page
 app.get('/api/validate-access', (req, res) => {
   const { id, token } = req.query || {};
@@ -185,6 +207,59 @@ app.get('/api/validate-access', (req, res) => {
   if (!item) return res.json({ ok: false, error: 'invalid' });
   if (item.accessExpires && Date.now() > item.accessExpires) return res.json({ ok: false, error: 'expired' });
   return res.json({ ok: true, id: item.id, name: item.name });
+});
+
+// Member features: posts and notes
+app.post('/api/member/post', (req, res) => {
+  const { id, token, text } = req.body || {};
+  if (!text) return res.json({ ok: false, error: 'missing_text' });
+  const user = validateAccessToken(id, token);
+  if (!user) return res.json({ ok: false, error: 'invalid' });
+  const posts = readJSON(POSTS_FILE) || [];
+  const postId = crypto.randomBytes(6).toString('hex');
+  const post = { id: postId, authorId: user.id, author: user.name, text, createdAt: Date.now(), admin: false };
+  posts.unshift(post);
+  writeJSON(POSTS_FILE, posts);
+  return res.json({ ok: true, post });
+});
+
+app.get('/api/member/posts', (req, res) => {
+  const { id, token } = req.query || {};
+  const user = validateAccessToken(id, token);
+  if (!user) return res.json({ ok: false, error: 'invalid' });
+  const posts = readJSON(POSTS_FILE) || [];
+  return res.json({ ok: true, posts });
+});
+
+app.post('/api/member/note', (req, res) => {
+  const { id, token, note } = req.body || {};
+  if (!note) return res.json({ ok: false, error: 'missing_note' });
+  const user = validateAccessToken(id, token);
+  if (!user) return res.json({ ok: false, error: 'invalid' });
+  const notes = readJSON(NOTES_FILE) || [];
+  const noteObj = { id: crypto.randomBytes(6).toString('hex'), ownerId: user.id, owner: user.name, note, createdAt: Date.now() };
+  notes.unshift(noteObj);
+  writeJSON(NOTES_FILE, notes);
+  return res.json({ ok: true, note: noteObj });
+});
+
+app.get('/api/member/notes', (req, res) => {
+  const { id, token } = req.query || {};
+  const user = validateAccessToken(id, token);
+  if (!user) return res.json({ ok: false, error: 'invalid' });
+  const notes = readJSON(NOTES_FILE) || [];
+  const mine = notes.filter(n => n.ownerId === user.id);
+  return res.json({ ok: true, notes: mine });
+});
+
+// members list for approved users
+app.get('/api/members', (req, res) => {
+  const { id, token } = req.query || {};
+  const user = validateAccessToken(id, token);
+  if (!user) return res.json({ ok: false, error: 'invalid' });
+  const requests = readJSON(REQUESTS_FILE) || [];
+  const members = requests.filter(r => r.status === 'approved').map(r => ({ id: r.id, name: r.name }));
+  return res.json({ ok: true, members });
 });
 
 // Admin: export requests
@@ -220,6 +295,12 @@ app.post('/api/admin/change-pass', requireAdminToken, (req, res) => {
   const newAdmin = { user: admin.user, salt, hash };
   writeJSON(ADMIN_FILE, newAdmin);
   return res.json({ ok: true });
+});
+
+// Admin: list posts
+app.get('/api/admin/posts', requireAdminToken, (req, res) => {
+  const posts = readJSON(POSTS_FILE) || [];
+  return res.json({ ok: true, posts });
 });
 
 app.listen(PORT, () => {

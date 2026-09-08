@@ -32,6 +32,11 @@
       </section>
 
       <section>
+        <h2>Mesaje rețea</h2>
+        <div id="postsPanel">Încă se încarcă mesaje...</div>
+      </section>
+
+      <section>
         <h2>Instrumente</h2>
         <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-top:0.6rem">
           <button id="exportBtn" class="button button-secondary">Exportă cereri (JSON)</button>
@@ -92,6 +97,41 @@
           const blob = new Blob([JSON.stringify(j.requests,null,2)],{type:'application/json'});
           const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='requests.json'; document.body.appendChild(a); a.click(); a.remove();
         });
+
+        // Announce (broadcast)
+        const announceBtn = document.createElement('button'); announceBtn.className='button'; announceBtn.textContent='Trimite anunț';
+        announceBtn.style.marginLeft='0.6rem';
+        announceBtn.addEventListener('click', ()=>{
+          const body = `<h3>Trimite anunț</h3><textarea id="announceText" style="width:100%;height:120px"></textarea><div style="text-align:right;margin-top:8px"><button id="doAnnounce" class="button">Trimite</button></div>`;
+          document.getElementById('modalBody').innerHTML = body; document.getElementById('modal').style.display='flex';
+          document.getElementById('closeModal').onclick = ()=>{ document.getElementById('modal').style.display='none'; };
+          document.getElementById('doAnnounce').onclick = async ()=>{
+            const text = document.getElementById('announceText').value;
+            const r = await fetch('/api/admin/announce', { method:'POST', headers:{ 'Content-Type':'application/json','x-admin-token': token }, body: JSON.stringify({ text }) });
+            const j = await r.json(); if (j.ok) { alert('Anunț trimis'); document.getElementById('modal').style.display='none'; loadRequests(); } else alert('Eroare: '+j.error);
+          };
+        });
+        document.querySelector('section:nth-of-type(3) div').appendChild(announceBtn);
+
+        // load posts for admin
+        async function loadPostsAdmin(){
+          const r = await fetch('/api/admin/posts', { headers: { 'x-admin-token': token }});
+          const j = await r.json(); const panel = document.getElementById('postsPanel');
+          if (!j.ok) { panel.textContent='Eroare la mesaje'; return; }
+          panel.innerHTML = '';
+          j.posts.forEach(p=>{
+            const el = document.createElement('div'); el.className='service-item'; el.style.marginBottom='0.6rem';
+            el.innerHTML = `<div><strong>${p.author}${p.admin? ' (ADMIN)':''}</strong><div style="font-size:0.9rem;color:var(--muted)">${new Date(p.createdAt).toLocaleString()}</div><div style="margin-top:6px">${p.text}</div></div>`;
+            const del = document.createElement('button'); del.className='button button-secondary'; del.textContent='Șterge';
+            del.addEventListener('click', async ()=>{ if (!confirm('Ștergi acest mesaj?')) return; await fetch('/api/admin/delete-post',{ method:'POST', headers:{ 'Content-Type':'application/json','x-admin-token':token }, body: JSON.stringify({ id: p.id }) }); loadPostsAdmin(); });
+            el.appendChild(del);
+            panel.appendChild(el);
+          });
+        }
+
+        // refresh both lists periodically
+        setInterval(()=>{ loadRequests(); loadPostsAdmin(); }, 15000);
+        loadPostsAdmin();
 
         document.getElementById('changePassBtn').addEventListener('click', ()=>{
           const body = `
