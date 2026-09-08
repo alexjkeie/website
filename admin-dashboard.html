@@ -98,6 +98,15 @@
           const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='requests.json'; document.body.appendChild(a); a.click(); a.remove();
         });
 
+        document.getElementById('sessionsBtn').addEventListener('click', async ()=>{
+          const r = await fetch('/api/admin/sessions', { headers: { 'x-admin-token': token }});
+          const j = await r.json();
+          if (!j.ok) return alert('Eroare la preluare sesiuni');
+          const body = '<h3>Sesiuni active</h3><div style="max-height:260px;overflow:auto;">' + (j.sessions.length ? j.sessions.map(s=>`<div style="padding:6px;border-bottom:1px solid var(--line)"><strong>${s.user}</strong><div style="font-size:0.9rem;color:var(--muted)">${new Date(s.createdAt).toLocaleString()}</div><div style="font-size:0.8rem;color:var(--muted)">token: ${s.token}</div></div>`).join('') : '<div>Nu sunt sesiuni.</div>') + '</div>';
+          document.getElementById('modalBody').innerHTML = body; document.getElementById('modal').style.display='flex';
+          document.getElementById('closeModal').onclick = ()=>{ document.getElementById('modal').style.display='none'; };
+        });
+
         // Announce (broadcast)
         const announceBtn = document.createElement('button'); announceBtn.className='button'; announceBtn.textContent='Trimite anunț';
         announceBtn.style.marginLeft='0.6rem';

@@ -303,6 +303,24 @@ app.get('/api/admin/posts', requireAdminToken, (req, res) => {
   return res.json({ ok: true, posts });
 });
 
+// Admin: delete a post
+app.post('/api/admin/delete-post', requireAdminToken, (req, res) => {
+  const { id } = req.body || {};
+  if (!id) return res.json({ ok: false, error: 'missing_id' });
+  const posts = readJSON(POSTS_FILE) || [];
+  const idx = posts.findIndex(p => p.id === id);
+  if (idx === -1) return res.json({ ok: false, error: 'not_found' });
+  posts.splice(idx, 1);
+  writeJSON(POSTS_FILE, posts);
+  return res.json({ ok: true });
+});
+
+// Admin: list sessions
+app.get('/api/admin/sessions', requireAdminToken, (req, res) => {
+  const sessions = readJSON(SESSIONS_FILE) || [];
+  return res.json({ ok: true, sessions });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
