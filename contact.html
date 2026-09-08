@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support — LEGIO</title>
+    <meta name="description" content="Contact the LEGIO support team, review status, and get help with downloads, setup, or execution issues." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="bg-bubbles" aria-hidden="true">
+      <span class="bubble bubble-1"></span>
+      <span class="bubble bubble-2"></span>
+      <span class="bubble bubble-3"></span>
+      <span class="bubble bubble-4"></span>
+    </div>
+
+    <header class="site-header">
+      <div class="container nav">
+        <div class="brand"><span class="brand-mark">L</span><span>LEGIO</span></div>
+
+        <button class="nav-toggle" aria-label="Open menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="index.html">Home</a>
+          <a href="about.html">About</a>
+          <a href="features.html">Features</a>
+          <a href="download.html">Download</a>
+          <a href="pricing.html">Pricing</a>
+          <a href="contact.html" class="active">Support</a>
+        </nav>
+        <a class="button button-small" href="download.html">Install</a>
+      </div>
+    </header>
+
+    <main>
+      <section class="page-hero">
+        <div class="container page-hero-grid">
+          <div>
+            <p class="eyebrow">support line</p>
+            <h1>We help keep your sessions clean and stable.</h1>
+            <p class="lead">Use the form below to send a report, ask for support, or check the status of your access. We keep the queue short and the responses focused.</p>
+            <div class="pill-row">
+              <span>Fast response</span>
+              <span>Ticket desk</span>
+              <span>Stable queue</span>
+            </div>
+          </div>
+
+          <div class="glass-panel info-panel">
+            <div class="panel-topbar">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+              <span class="panel-title">/support/status</span>
+            </div>
+            <pre id="serverStatus">checking...</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container support-grid">
+          <form id="contactForm" class="contact-form glass-card">
+            <label>
+              Name
+              <input name="name" placeholder="Your handle" required />
+            </label>
+            <label>
+              Email
+              <input name="email" type="email" placeholder="you@example.com" required />
+            </label>
+            <label>
+              Message
+              <textarea name="message" rows="6" placeholder="Describe the issue or request" required></textarea>
+            </label>
+            <button class="button" type="submit">Send report</button>
+            <div id="formStatus" class="form-status" aria-live="polite"></div>
+          </form>
+
+          <div class="support-side">
+            <div class="support-card glass-card">
+              <h3>Ticket desk</h3>
+              <p>support@legio-exec.local</p>
+            </div>
+            <div class="support-card glass-card">
+              <h3>Response window</h3>
+              <p>Usually within 24 hours depending on request volume.</p>
+            </div>
+            <div class="support-card glass-card">
+              <h3>Common issues</h3>
+              <p>Installer setup, Android build questions, script compatibility, access requests.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-box">
+        <div>
+          <p class="eyebrow">run status</p>
+          <h2>Executor online. Queue clear. Ready for the next session.</h2>
+        </div>
+        <a class="button" href="mailto:support@legio-exec.local">support@legio-exec.local</a>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
